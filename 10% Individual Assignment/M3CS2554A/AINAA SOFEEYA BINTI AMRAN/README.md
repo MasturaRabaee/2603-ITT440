@@ -2,15 +2,15 @@
 ### Student Information: Ainaa Sofeeya Amran
 ### Date: April 21, 2026
 
-## System Environment
+## SYSTEM ENVIRONMENT
 * OS: Ubuntu
 * Python Script: bank.py
 * Metrics Recorded: Execution time, transaction counts, final balance, and speedup relative to sequential execution.
 
-# 1. Problem Statement
+# 1. PROBLEM STATEMENT
 Banking systems process thousands of financial transactions daily, including deposits, withdrawals, and transfers. Processing these transactions efficiently is crucial for system performance. However, it is unclear whether using concurrent (threading) or parallel (multiprocessing) techniques provides better performance compared to traditional sequential processing. This project aims to compare these three approaches by processing 30,500,000 random bank transactions and measuring their execution times to determine which method is most efficient.
 
-# 2. Objectives
+# 2. OBJECTIVES
 To implement three transaction processing methods:
 * Sequential processing (single-threaded)
 * Concurrent processing using ThreadPoolExecutor
@@ -25,7 +25,7 @@ To calculate the speedup factor of concurrent and parallel methods compared to s
 
 To analyze which method performs best for this transaction processing workload.
 
-# 3. Implementation
+# 3. IMPLEMENTATION
 ## 3.1 Source Code 
 ```ssh
 import random, time
@@ -80,18 +80,19 @@ if __name__ == "__main__":
 
 ## 3.2 Implementation Description
 
-  | Function                   | Purpose                                                           |
-|--------------------------|-------------------------------------------------------------------|
-| generate_transactions(n) | Creates random transactions with random amounts                   |
-| process_chunk(chunk)     | Processes a batch and returns balance and counts                  |
-| sequential(transactions) | Processes all transactions in one thread                          |
-| concurrent(transactions) | Uses 4 threads to process 4 chunks                                |
-| parallel(transactions)   | Uses 4 processes to process 4 chunks                               |
+| Function | Purpose |
+|---|---|
+| `gen(n)` | Generates `n` random transactions, each with a random type ("deposit", "withdraw", "transfer") and a random amount between 1 and 1000 |
+| `proc(chunk)` | Processes a batch of transactions and returns the net balance change, deposit count, withdrawal count, and transfer count for that chunk |
+| `run(trans, mode)` | Executes transactions using sequential, concurrent (4 threads), or parallel (4 processes) mode and measures execution time |
+| Sequential Mode | Processes all transactions in one thread using a single call to `proc()` |
+| Concurrent Mode | Uses `ThreadPoolExecutor` with 4 threads to split transactions into 4 chunks using list slicing `[i::4]` |
+| Parallel Mode | Uses `multiprocessing.Pool` with 4 processes to split transactions into 4 chunks using the same slicing method |
 
-# 4. Output Results
+# 4. OUTPUT RESULT
 <img width="689" height="720" alt="image" src="https://github.com/user-attachments/assets/8cc8fef6-17bf-4e31-95b4-3d910f2e5352" />
 
-# 5. Performance Analysis
+# 5. PERFORMANCE ANALYSIS
 ## 5.1 Results Summary
 | Transaction Volume | Sequential (s) | Concurrent (s) | Parallel (s) | Concurrent Speedup | Parallel Speedup | Status |
 |---|---|---|---|---|---|---|
@@ -113,11 +114,19 @@ if __name__ == "__main__":
 | **Total** | **30,016,000** | **30,500,000** |
 
 ## 5.3 Analysis
-* Sequential (0.5479s): Fastest method. No overhead from thread or process creation. Simple and efficient for this workload.
+* Sequential (9.42–9.49s): Fastest method. No overhead from thread or process creation. Simple and efficient for this workload.
 
-* Concurrent (0.6608s): 0.83x slower than sequential. Thread management and GIL contention on shared balance reduced performance.
+* Concurrent (10.60–12.83s): 0.74x to 0.89x slower than sequential. Thread management and GIL contention on shared balance reduced performance. Performed better at 30.5M (0.89x) than at 30M (0.74x).
 
-* Parallel (2.0571s): 0.27x slower than sequential. High overhead from process creation and inter-process communication made this the slowest method despite using multiple CPU cores.
+* Parallel (22.76–29.17s): 0.33x to 0.41x slower than sequential. High overhead from process creation and inter-process communication made this the slowest method despite using multiple CPU cores.
 
-# 6. Conclusion
-Based on the experimental results processing 3,000,000 bank transactions, sequential processing was the fastest method at 0.5479 seconds, outperforming both concurrent and parallel approaches. Concurrent processing using 4 threads was slower at 0.6608 seconds, achieving only 0.83x the speed of sequential due to thread management overhead and Global Interpreter Lock (GIL) contention on the shared balance. Parallel processing using 4 processes was the slowest at 2.0571 seconds, achieving just 0.27x the speed of sequential because the overhead of creating separate processes and performing inter-process communication (IPC) significantly degraded performance. Therefore, for workloads involving frequent updates to a shared state such as a bank balance, sequential processing is the most efficient choice in Python, while concurrency and parallelism introduce unnecessary overhead that reduces overall performance.
+* System Limit: Maximum feasible transaction volume was approximately 30.5 million transactions. Volumes of 35 million, 40 million, and 50 million caused the process to be killed due to system resource exhaustion (likely memory-related).
+
+# 6. CONCLUSION
+| Rank | Method | Best Time | Speedup | Reliability |
+|---|---|---|---|---|
+| 1 | Sequential | 9.4198s | 1.00x | ✅ Up to 30.5M |
+| 2 | Concurrent | 10.6026s | 0.89x | ✅ Up to 30.5M |
+| 3 | Parallel | 22.7562s | 0.41x | ✅ Up to 30.5M |
+
+Based on the experimental results processing up to 30.5 million bank transactions, sequential processing proved to be the fastest and most reliable method, outperforming both concurrent and parallel approaches. Concurrent and parallel methods introduced significant overhead that outweighed any potential benefits from multithreading or multiprocessing. The maximum feasible transaction volume on this system was approximately 30.5 million transactions, as volumes of 35 million, 40 million, and 50 million transactions caused the process to be killed due to system resource exhaustion, likely memory-related. Therefore, for this specific bank transaction processing workload under the given system constraints, sequential execution is the recommended approach.
